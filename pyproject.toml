@@ -1,0 +1,10 @@
+[project]
+name = "Multiqaptions"
+
+[tool.pyside6-project]
+files = ["multiqaptions/gui/main.py"]
+
+[tool.basedpyright]
+venvPath = "."
+venv = "env"
+reportMissingModuleSource = "none"
