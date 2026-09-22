@@ -6,6 +6,7 @@ import QtQuick.Layouts
 import QtQuick.Controls as Controls
 import Qt.labs.platform as Labs
 import org.kde.kirigami as Kirigami
+import io.github.microgamercz.multiqaptions
 
 Controls.ApplicationWindow {
     id: root
@@ -17,17 +18,26 @@ Controls.ApplicationWindow {
         onTriggered: root.hide()
     }
 
+    PortalWorker {
+        id: portal
+
+        onNodeIdReady: function (nodeid: int) {
+            print("PipeWire node id: " + nodeid);
+        }
+    }
+
     ColumnLayout {
         anchors.fill: parent
 
         Kirigami.AbstractCard {
             Layout.alignment: Qt.AlignHCenter
-            Layout.fillWidth: false
+            Layout.fillWidth: true
 
             contentItem: RowLayout {
                 Controls.Button {
                     text: "Select window"
                     flat: true
+                    onClicked: portal.getPwNodeId()
                 }
 
                 Kirigami.Separator {

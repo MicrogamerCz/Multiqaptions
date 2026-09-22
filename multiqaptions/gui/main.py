@@ -9,6 +9,8 @@ from PySide6.QtCore import QUrl
 from PySide6.QtQml import QQmlApplicationEngine
 from PySide6.QtWidgets import QApplication
 
+import multiqaptions.data.portalworker  # pyright: ignore[reportUnusedImport]  # noqa: F401
+
 
 def main():
     app = QApplication(sys.argv)
@@ -17,13 +19,12 @@ def main():
     signal.signal(signal.SIGINT, signal.SIG_DFL)
 
     base_path = os.path.abspath(os.path.dirname(__file__))
-    url = QUrl(f"file://{base_path}/qml/main.qml")
-    engine.load(url)
+    engine.load(f"file://{base_path}/qml/main.qml")
 
     if len(engine.rootObjects()) == 0:
         sys.exit()
 
-    app.exec()
+    _ = app.exec()
 
 
 if __name__ == "__main__":
