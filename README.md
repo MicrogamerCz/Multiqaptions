@@ -52,12 +52,15 @@ Python dependencies:
 pyside6
 ```
 
-System dependencies:
+System dependencies (only top-level dependencies):
 ```
-qt6-declarative
+kirigami
+libportal
+gst-plugin-pipewire
+gst-plugin-qml6
 ```
 
 ```sh
 # Arch Linux
-sudo pacman -S qt6-declarative
+sudo pacman -S kirigami libportal gst-plugin-pipewire gst-plugin-qml6
 ```
