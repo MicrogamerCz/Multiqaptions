@@ -5,19 +5,25 @@ import os
 import signal
 import sys
 
-from PySide6.QtCore import QUrl
+from gi.repository import Gst
 from PySide6.QtQml import QQmlApplicationEngine
 from PySide6.QtWidgets import QApplication
 
+import multiqaptions.data.captureworker  # pyright: ignore[reportUnusedImport]
 import multiqaptions.data.portalworker  # pyright: ignore[reportUnusedImport]  # noqa: F401
+
+os.environ["QT_QUICK_BACKEND"] = "opengl"
 
 
 def main():
-    app = QApplication(sys.argv)
-    engine = QQmlApplicationEngine()
-
     signal.signal(signal.SIGINT, signal.SIG_DFL)
 
+    Gst.init()
+
+    app = QApplication(sys.argv)
+    _ = Gst.ElementFactory.make("qml6glsink")
+
+    engine = QQmlApplicationEngine()
     base_path = os.path.abspath(os.path.dirname(__file__))
     engine.load(f"file://{base_path}/qml/main.qml")
 

@@ -7,6 +7,7 @@ import QtQuick.Controls as Controls
 import Qt.labs.platform as Labs
 import org.kde.kirigami as Kirigami
 import io.github.microgamercz.multiqaptions
+import org.freedesktop.gstreamer.Qt6GLVideoItem
 
 Controls.ApplicationWindow {
     id: root
@@ -23,6 +24,18 @@ Controls.ApplicationWindow {
 
         onNodeIdReady: function (nodeid: int) {
             print("PipeWire node id: " + nodeid);
+            capture.set_pw_nodeid(nodeid);
+        // capture.preview = videoItem;
+        }
+    }
+
+    CaptureWorker {
+        id: capture
+
+        Component.onCompleted: {
+            print("About to set the videoitem")
+            preview = videoItem;
+            print("After setting the videoitem,")
         }
     }
 
@@ -103,7 +116,13 @@ Controls.ApplicationWindow {
             }
         }
 
-        // qml6glsinkitem
+        GstGLQt6VideoItem {
+            id: videoItem
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            objectName: "videoItem"
+            z: 1 // Set z to 1 to keep the video item below the subtitle item
+        }
     }
 
     Labs.SystemTrayIcon {
