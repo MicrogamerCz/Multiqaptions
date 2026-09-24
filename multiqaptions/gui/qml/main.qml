@@ -13,6 +13,7 @@ Controls.ApplicationWindow {
     id: root
     visible: true
     title: "Multiqaptions"
+    minimumWidth: appToolbar.width
 
     readonly property Controls.Action quitAction: Controls.Action {
         shortcut: StandardKey.Quit
@@ -23,105 +24,111 @@ Controls.ApplicationWindow {
         id: portal
 
         onNodeIdReady: function (nodeid: int) {
-            print("PipeWire node id: " + nodeid);
             capture.set_pw_nodeid(nodeid);
-        // capture.preview = videoItem;
         }
     }
 
     CaptureWorker {
         id: capture
-
-        Component.onCompleted: {
-            print("About to set the videoitem")
-            preview = videoItem;
-            print("After setting the videoitem,")
-        }
+        preview: videoItem
     }
 
     ColumnLayout {
         anchors.fill: parent
-
-        Kirigami.AbstractCard {
-            Layout.alignment: Qt.AlignHCenter
+        RowLayout {
             Layout.fillWidth: true
+            Item {
+                Layout.fillWidth: true
+            }
+            Controls.Control {
+                id: appToolbar
+                Layout.margins: Kirigami.Units.mediumSpacing
 
-            contentItem: RowLayout {
-                Controls.Button {
-                    text: "Select window"
-                    flat: true
-                    onClicked: portal.getPwNodeId()
-                }
+                contentItem: RowLayout {
+                    Controls.Button {
+                        text: "Select window"
+                        flat: true
+                        onClicked: portal.getPwNodeId()
+                    }
 
-                Kirigami.Separator {
-                    Layout.fillHeight: true
-                }
+                    Kirigami.Separator {
+                        Layout.fillHeight: true
+                    }
 
-                Controls.ButtonGroup {
-                    id: alignButtons
-                    exclusive: true
-                }
+                    Controls.ButtonGroup {
+                        id: alignButtons
+                        exclusive: true
+                    }
 
-                Controls.Button {
-                    icon.name: "align-vertical-top"
-                    checkable: true
-                    flat: true
-                    Controls.ButtonGroup.group: alignButtons
-                }
-                Controls.Button {
-                    icon.name: "align-horizontal-right"
-                    checkable: true
-                    flat: true
-                    Controls.ButtonGroup.group: alignButtons
-                }
-                Controls.Button {
-                    icon.name: "align-vertical-bottom"
-                    checked: true
-                    checkable: true
-                    flat: true
-                    Controls.ButtonGroup.group: alignButtons
-                }
-                Controls.Button {
-                    icon.name: "align-horizontal-left"
-                    checkable: true
-                    flat: true
-                    Controls.ButtonGroup.group: alignButtons
-                }
+                    Controls.Button {
+                        icon.name: "align-vertical-top"
+                        checkable: true
+                        flat: true
+                        Controls.ButtonGroup.group: alignButtons
+                    }
+                    Controls.Button {
+                        icon.name: "align-horizontal-right"
+                        checkable: true
+                        flat: true
+                        Controls.ButtonGroup.group: alignButtons
+                    }
+                    Controls.Button {
+                        icon.name: "align-vertical-bottom"
+                        checked: true
+                        checkable: true
+                        flat: true
+                        Controls.ButtonGroup.group: alignButtons
+                    }
+                    Controls.Button {
+                        icon.name: "align-horizontal-left"
+                        checkable: true
+                        flat: true
+                        Controls.ButtonGroup.group: alignButtons
+                    }
 
-                Kirigami.Separator {
-                    Layout.fillHeight: true
-                }
+                    Kirigami.Separator {
+                        Layout.fillHeight: true
+                    }
 
-                Controls.ComboBox {
-                    enabled: false
-                    Layout.minimumWidth: font.pointSize * displayText.length
-                    displayText: "Source Language"
-                    flat: true
-                }
-                Controls.ComboBox {
-                    enabled: false
-                    Layout.minimumWidth: font.pointSize * displayText.length
-                    displayText: "Output Language"
-                    flat: true
-                }
+                    Controls.ComboBox {
+                        enabled: false
+                        Layout.minimumWidth: font.pointSize * displayText.length
+                        displayText: "Source Language"
+                        flat: true
+                    }
+                    Controls.ComboBox {
+                        enabled: false
+                        Layout.minimumWidth: font.pointSize * displayText.length
+                        displayText: "Output Language"
+                        flat: true
+                    }
 
-                Kirigami.Separator {
-                    Layout.fillHeight: true
-                }
+                    Kirigami.Separator {
+                        Layout.fillHeight: true
+                    }
 
-                Controls.Button {
-                    text: "Start"
-                    flat: true
+                    Controls.Button {
+                        text: "Start"
+                        flat: true
+                    }
                 }
+            }
+            Item {
+                Layout.fillWidth: true
             }
         }
 
-        GstGLQt6VideoItem {
-            id: videoItem
+        Rectangle {
             Layout.fillWidth: true
             Layout.fillHeight: true
-            objectName: "videoItem"
-            z: 1 // Set z to 1 to keep the video item below the subtitle item
+            color: "black"
+
+            GstGLQt6VideoItem {
+                id: videoItem
+                anchors.fill: parent
+                objectName: "videoItem"
+                z: 1 // Set z to 1 to keep the video item below the subtitle item
+            }
         }
     }
 
@@ -149,7 +156,10 @@ Controls.ApplicationWindow {
         }
 
         onActivated: {
-            root.show();
+            if (root.visible)
+                root.hide();
+            else
+                root.show();
         }
     }
 }
