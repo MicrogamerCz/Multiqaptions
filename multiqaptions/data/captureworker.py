@@ -16,9 +16,12 @@ QML_IMPORT_MINOR_VERSION = 0
 @final
 class CaptureWorker(QObject):
     previewChanged = Signal()
+    capturingChanged = Signal(bool)
 
     def __init__(self, parent: QObject | None = None) -> None:
         super().__init__(parent)
+
+        self._capturing = False
 
         # TODO: add checks if elements exist, pipeline was parsed successfully, plugins aren't missing, etc.
         self._pipeline: Gst.Pipeline = Gst.parse_launch("""
@@ -42,6 +45,10 @@ class CaptureWorker(QObject):
 
         self._preview_item: QQuickItem | None = None
 
+    @Property(bool, notify=capturingChanged)
+    def capturing(self):
+        return self._capturing
+
     @Property(QQuickItem, notify=previewChanged)
     def preview(self):  # pyright: ignore[reportRedeclaration]
         return self._preview_item
@@ -64,7 +71,8 @@ class CaptureWorker(QObject):
 
         if not self._pipeline:
             print("ERROR: This shouldn't have happened")
-            return
+
+        self.previewChanged.emit()
 
     @Slot(int)
     def set_pw_nodeid(self, node_id: int):
@@ -76,3 +84,6 @@ class CaptureWorker(QObject):
         pipewiresrc.set_property("path", str(node_id))
 
         _ = self._pipeline.set_state(Gst.State.PLAYING)
+
+        self._capturing = True;
+        self.capturingChanged.emit(True);

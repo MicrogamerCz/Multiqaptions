@@ -6,8 +6,10 @@ import QtQuick.Layouts
 import QtQuick.Controls as Controls
 import Qt.labs.platform as Labs
 import org.kde.kirigami as Kirigami
+import org.kde.config as KConfig
 import io.github.microgamercz.multiqaptions
 import org.freedesktop.gstreamer.Qt6GLVideoItem
+import "."
 
 Controls.ApplicationWindow {
     id: root
@@ -31,6 +33,10 @@ Controls.ApplicationWindow {
     CaptureWorker {
         id: capture
         preview: videoItem
+    }
+
+    KConfig.WindowStateSaver {
+        configGroupName: "Window"
     }
 
     ColumnLayout {
@@ -127,7 +133,10 @@ Controls.ApplicationWindow {
                 id: videoItem
                 anchors.fill: parent
                 objectName: "videoItem"
-                z: 1 // Set z to 1 to keep the video item below the subtitle item
+            }
+
+            SelectionRectangle {
+                visible: capture.capturing
             }
         }
     }

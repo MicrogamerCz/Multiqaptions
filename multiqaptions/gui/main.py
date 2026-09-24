@@ -21,6 +21,7 @@ def main():
     Gst.init()
 
     app = QApplication(sys.argv)
+    app.setApplicationName("Multiqaptions")
     _ = Gst.ElementFactory.make("qml6glsink")
 
     engine = QQmlApplicationEngine()
