@@ -61,41 +61,6 @@ Controls.ApplicationWindow {
                         Layout.fillHeight: true
                     }
 
-                    Controls.ButtonGroup {
-                        id: alignButtons
-                        exclusive: true
-                    }
-
-                    Controls.Button {
-                        icon.name: "align-vertical-top"
-                        checkable: true
-                        flat: true
-                        Controls.ButtonGroup.group: alignButtons
-                    }
-                    Controls.Button {
-                        icon.name: "align-horizontal-right"
-                        checkable: true
-                        flat: true
-                        Controls.ButtonGroup.group: alignButtons
-                    }
-                    Controls.Button {
-                        icon.name: "align-vertical-bottom"
-                        checked: true
-                        checkable: true
-                        flat: true
-                        Controls.ButtonGroup.group: alignButtons
-                    }
-                    Controls.Button {
-                        icon.name: "align-horizontal-left"
-                        checkable: true
-                        flat: true
-                        Controls.ButtonGroup.group: alignButtons
-                    }
-
-                    Kirigami.Separator {
-                        Layout.fillHeight: true
-                    }
-
                     Controls.ComboBox {
                         enabled: false
                         Layout.minimumWidth: font.pointSize * displayText.length
@@ -116,6 +81,12 @@ Controls.ApplicationWindow {
                     Controls.Button {
                         text: "Start"
                         flat: true
+                    }
+
+                    Controls.Button {
+                        text: "Settings"
+                        flat: true
+                        visible: false
                     }
                 }
             }

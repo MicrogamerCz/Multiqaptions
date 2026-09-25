@@ -1,4 +1,5 @@
 import ctypes
+import sys
 from typing import final
 
 import shiboken6
@@ -39,8 +40,16 @@ class CaptureWorker(QObject):
 
         self._frame_sink = self._pipeline.get_by_name("frame_sink")
 
-        video_sink: Gst.Element = self._pipeline.get_by_name("video_sink")  # pyright: ignore[reportAssignmentType]
+        video_sink = self._pipeline.get_by_name("video_sink")
+        if not video_sink:
+            print("ERROR: Failed to get video_sink! Some GStreamer plugins might be missing")
+            sys.exit(1)
+
         self._qml_sink = Gst.ElementFactory.make("qml6glsink", "qml_sink")
+        if not self._qml_sink:
+            print("ERROR: qml_sink was not created! Some GStreamer plugins might be missing")
+            sys.exit(1)
+
         video_sink.set_property("sink", self._qml_sink)
 
         self._preview_item: QQuickItem | None = None
@@ -69,19 +78,21 @@ class CaptureWorker(QObject):
         )
         del gobject
 
-        if not self._pipeline:
-            print("ERROR: This shouldn't have happened")
 
         self.previewChanged.emit()
 
     @Slot(int)
     def set_pw_nodeid(self, node_id: int):
+        if not self._pipeline:
+            print("ERROR: This shouldn't have happened")
+            sys.exit(1)
+
         _, state, _ = self._pipeline.get_state(1200)
         if state == Gst.State.PLAYING:
             _ = self._pipeline.set_state(Gst.State.NULL)
 
         pipewiresrc: Gst.Element = self._pipeline.get_by_name("capture_src")  # pyright: ignore[reportAssignmentType]
-        pipewiresrc.set_property("path", str(node_id))
+        pipewiresrc.set_property("path", node_id)
 
         _ = self._pipeline.set_state(Gst.State.PLAYING)
 
