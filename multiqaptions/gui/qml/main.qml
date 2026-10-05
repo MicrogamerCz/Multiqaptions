@@ -15,7 +15,7 @@ Controls.ApplicationWindow {
     id: root
     visible: true
     title: "Multiqaptions"
-    minimumWidth: appToolbar.width
+    minimumWidth: appToolbar.width + Kirigami.Units.mediumSpacing * 3
 
     readonly property Controls.Action quitAction: Controls.Action {
         shortcut: StandardKey.Quit
@@ -43,9 +43,11 @@ Controls.ApplicationWindow {
         anchors.fill: parent
         RowLayout {
             Layout.fillWidth: true
+
             Item {
                 Layout.fillWidth: true
             }
+
             Controls.Control {
                 id: appToolbar
                 Layout.margins: Kirigami.Units.mediumSpacing
@@ -60,6 +62,19 @@ Controls.ApplicationWindow {
                     Kirigami.Separator {
                         Layout.fillHeight: true
                     }
+
+                    /*Controls.Label {
+                        text: "Framerate:"
+                    }
+
+                    Controls.SpinBox {
+                        from: 1
+                        to: 20
+                    }
+
+                    Kirigami.Separator {
+                        Layout.fillHeight: true
+                    }*/
 
                     Controls.ComboBox {
                         enabled: false

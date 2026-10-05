@@ -1,7 +1,9 @@
 import ctypes
 import sys
-from typing import final
+from typing import cast, final
 
+import cv2
+import numpy as np
 import shiboken6
 from gi.repository import Gst
 from PySide6.QtCore import Property, QObject, Signal, Slot
@@ -18,6 +20,7 @@ QML_IMPORT_MINOR_VERSION = 0
 class CaptureWorker(QObject):
     previewChanged = Signal()
     capturingChanged = Signal(bool)
+    frameCaptured = Signal(np.ndarray)
 
     def __init__(self, parent: QObject | None = None) -> None:
         super().__init__(parent)
@@ -25,29 +28,41 @@ class CaptureWorker(QObject):
         self._capturing = False
 
         # TODO: add checks if elements exist, pipeline was parsed successfully, plugins aren't missing, etc.
-        self._pipeline: Gst.Pipeline = Gst.parse_launch("""
+        self._pipeline: Gst.Pipeline = cast(Gst.Pipeline, Gst.parse_launch("""
             pipewiresrc name=capture_src provide-clock=false !
             queue ! tee name=capture
             capture. ! valve name=video_valve ! queue !
                 glsinkbin name=video_sink
             capture. ! valve name=frame_valve ! queue !
-                videoconvert ! video/x-raw,format=RGB !
+                videoconvert ! videorate ! video/x-raw,format=BGR,framerate=1/1 !
                 appsink name=frame_sink emit-signals=true max-buffers=1 drop=true sync=false
-        """)  # pyright: ignore[reportAttributeAccessIssue]
+        """))
+
+        # odečítání 10 framů pro extrakci textu ?
 
         self._video_valve = self._pipeline.get_by_name("video_valve")
         self._frame_valve = self._pipeline.get_by_name("frame_valve")
 
         self._frame_sink = self._pipeline.get_by_name("frame_sink")
+        if not self._frame_sink:
+            print(
+                "ERROR: Failed to get frame_sink! Some GStreamer plugins might be missing"
+            )
+            sys.exit(1)
+        _ = self._frame_sink.connect("new-sample", self.on_new_frame)
 
         video_sink = self._pipeline.get_by_name("video_sink")
         if not video_sink:
-            print("ERROR: Failed to get video_sink! Some GStreamer plugins might be missing")
+            print(
+                "ERROR: Failed to get video_sink! Some GStreamer plugins might be missing"
+            )
             sys.exit(1)
 
         self._qml_sink = Gst.ElementFactory.make("qml6glsink", "qml_sink")
         if not self._qml_sink:
-            print("ERROR: qml_sink was not created! Some GStreamer plugins might be missing")
+            print(
+                "ERROR: qml_sink was not created! Some GStreamer plugins might be missing"
+            )
             sys.exit(1)
 
         video_sink.set_property("sink", self._qml_sink)
@@ -78,7 +93,6 @@ class CaptureWorker(QObject):
         )
         del gobject
 
-
         self.previewChanged.emit()
 
     @Slot(int)
@@ -96,5 +110,35 @@ class CaptureWorker(QObject):
 
         _ = self._pipeline.set_state(Gst.State.PLAYING)
 
-        self._capturing = True;
-        self.capturingChanged.emit(True);
+        self._capturing = True
+        self.capturingChanged.emit(True)
+
+    def on_new_frame(self, sink: Gst.Element):
+        raw_frame: Gst.Sample | None = cast(Gst.Sample | None, sink.emit("pull-sample"))
+        if not raw_frame:
+            return Gst.FlowReturn.EOS
+
+        buf: Gst.Buffer | None = raw_frame.get_buffer()
+        caps: Gst.Caps | None = raw_frame.get_caps()
+        if not buf or not caps:
+            return Gst.FlowReturn.EOS
+
+        structure: Gst.Structure = caps.get_structure(0)
+        width = cast(int, structure.get_value("width"))
+        height = cast(int, structure.get_value("height"))
+
+        success, mapinfo = buf.map(Gst.MapFlags.READ)
+        if not success:
+            return None
+
+        frame: np.ndarray = np.ndarray(
+            shape=(height, width, 3), dtype=np.uint8, buffer=buf.extract_dup(0, buf.get_size())
+        )
+
+        buf.unmap(mapinfo)
+
+        _ = cv2.imwrite("/tmp/capturetest.png", frame)
+
+        self.frameCaptured.emit(frame)
+
+        return Gst.FlowReturn.OK
